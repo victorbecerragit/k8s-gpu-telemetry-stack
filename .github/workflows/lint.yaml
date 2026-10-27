@@ -1,0 +1,80 @@
+name: Lint and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.4
+
+      - name: Add chart repositories
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
+          helm repo update
+
+      - name: Build dependencies
+        run: helm dependency build ./charts/gpu-telemetry-stack
+
+      - name: Lint
+        run: ./scripts/lint.sh
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install pytest pyyaml
+
+      - name: Add chart repositories
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
+          helm repo update
+
+      - name: Build dependencies
+        run: helm dependency build ./charts/gpu-telemetry-stack
+
+      - name: Run test suite
+        run: python3 -m pytest -q
+
+      - name: Verify committed charts are reproducible
+        run: |
+          python3 scripts/render-demo-charts.py \
+            --input demo/snapshots/example.json \
+            --output-dir /tmp/rendered
+          for f in /tmp/rendered/*.svg; do
+            name="$(basename "$f")"
+            diff -q "$f" "docs/images/$name" \
+              || { echo "::error::$name is stale; re-run render-demo-charts.py"; exit 1; }
+          done

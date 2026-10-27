@@ -1,0 +1,6 @@
+apiVersion: v2
+name: dcgm-exporter
+description: Lightweight DCGM exporter chart for GPU hardware telemetry
+type: application
+version: 0.1.0
+appVersion: "3.3.8"

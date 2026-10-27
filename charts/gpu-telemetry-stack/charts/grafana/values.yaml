@@ -1,0 +1,16 @@
+enabled: true
+
+# -- Bundle the GPU telemetry dashboard as a sidecar-discovered ConfigMap
+dashboards:
+  enabled: true
+  folder: "GPU Telemetry"
+
+grafana:
+  adminPassword: ""
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      folderAnnotation: grafana_folder
+      provider:
+        foldersFromFilesStructure: false

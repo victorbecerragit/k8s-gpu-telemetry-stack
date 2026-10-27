@@ -1,0 +1,26 @@
+=======================================================
+  GPU Telemetry Stack — {{ .Release.Name }}
+=======================================================
+
+Namespace : {{ include "gpu-telemetry-stack.namespace" . }}
+Cluster   : {{ .Values.global.clusterName }}
+
+Components deployed:
+{{- if index .Values "dcgm-exporter" "enabled" }}
+  ✔ DCGM Exporter  (GPU hardware metrics)
+{{- end }}
+{{- if index .Values "ebpf-probes" "enabled" }}
+  ✔ eBPF Probes     (TCP latency tracing)
+{{- end }}
+{{- if index .Values "prometheus" "enabled" }}
+  ✔ Prometheus      (metrics collection)
+{{- end }}
+{{- if index .Values "grafana" "enabled" }}
+  ✔ Grafana         (dashboards & alerts)
+{{- end }}
+{{- if index .Values "gpu-operator" "enabled" }}
+  ✔ GPU Operator    (NVIDIA device plugin)
+{{- end }}
+
+Run validation:
+  ./scripts/validate-dcgm-metrics.sh

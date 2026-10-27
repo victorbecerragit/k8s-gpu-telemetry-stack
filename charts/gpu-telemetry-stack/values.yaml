@@ -1,0 +1,104 @@
+# -- Global configuration for the GPU telemetry stack
+global:
+  # -- Kubernetes cluster name used in dashboard labels
+  clusterName: "gpu-cluster"
+  # -- Namespace override (defaults to release namespace)
+  namespace: ""
+
+# -- NVIDIA DCGM Exporter sub-chart
+dcgm-exporter:
+  enabled: true
+  image:
+    repository: nvcr.io/nvidia/k8s/dcgm-exporter
+    tag: "3.3.8-3.6.0-ubuntu22.04"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+  # -- Custom DCGM field IDs for targeted GPU metrics
+  extraEnv:
+    - name: DCGM_EXPORTER_FIELD_IDS
+      # SM utilization (203), memory-copy util (204), VRAM free/used (251/252),
+      # PCIe TX/RX throughput (100/101), GPU temperature (150), XID errors (230)
+      value: "203,204,251,252,100,101,150,230"
+
+# -- eBPF-based network probes (Cilium / Inspektor Gadget)
+ebpf-probes:
+  enabled: true
+  cilium:
+    hubbleRelay:
+      enabled: true
+    hubbleUI:
+      enabled: false
+  inspektorGadget:
+    enabled: true
+    image:
+      repository: ghcr.io/inspektor-gadget/inspektor-gadget
+      tag: "latest"
+      pullPolicy: IfNotPresent
+
+# -- Prometheus sub-chart
+prometheus:
+  enabled: true
+  # -- GPU/network SRE alerting rules
+  rules:
+    enabled: true
+    thresholds:
+      temperatureCelsius: 85
+      vramPercent: 90
+      tcpLatencyMicros: 5000
+  kube-prometheus-stack:
+    prometheus:
+      prometheusSpec:
+        retention: 15d
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: "1"
+            memory: 2Gi
+    alertmanager:
+      enabled: true
+
+# -- Grafana sub-chart
+grafana:
+  enabled: true
+  # -- Bundle the GPU telemetry dashboard via the Grafana sidecar
+  dashboards:
+    enabled: true
+    folder: "GPU Telemetry"
+  grafana:
+    adminPassword: ""  # -- Set via --set or sealed-secret
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        folderAnnotation: grafana_folder
+
+# -- NVIDIA GPU Operator sub-chart
+gpu-operator:
+  enabled: true
+  gpu-operator:
+    driver:
+      enabled: false  # -- EKS provides pre-installed drivers
+    toolkit:
+      enabled: true
+    dcgm:
+      enabled: true
+    mig:
+      strategy: ""  # -- Set to "single" or "mixed" if using MIG

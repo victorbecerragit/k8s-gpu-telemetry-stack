@@ -1,0 +1,6 @@
+apiVersion: v2
+name: ebpf-probes
+description: Minimal eBPF probe deployment for socket-level TCP latency sampling
+type: application
+version: 0.1.0
+appVersion: "0.43.0"

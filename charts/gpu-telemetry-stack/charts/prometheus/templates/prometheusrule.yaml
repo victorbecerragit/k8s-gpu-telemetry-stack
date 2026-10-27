@@ -1,0 +1,85 @@
+{{- if .Values.rules.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "prometheus.fullname" . }}-gpu-alerts
+  labels:
+    {{- include "prometheus.labels" . | nindent 4 }}
+    {{- with .Values.rules.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: gpu.hardware
+      rules:
+        - alert: GpuXidError
+          expr: increase(DCGM_FI_DEV_XID_ERRORS[5m]) > 0
+          for: 0m
+          labels:
+            severity: critical
+            component: gpu
+          annotations:
+            summary: "GPU XID error detected on {{`{{ $labels.Hostname }}`}} (GPU {{`{{ $labels.gpu }}`}})"
+            description: >-
+              A GPU XID error (code {{`{{ $value }}`}}) was reported. XID errors indicate
+              hardware or driver faults and often require node drain and GPU reset.
+            runbook_url: "https://docs.nvidia.com/deploy/xid-errors/"
+
+        - alert: GpuThermalThrottling
+          expr: DCGM_FI_DEV_GPU_TEMP > {{ .Values.rules.thresholds.temperatureCelsius }}
+          for: 5m
+          labels:
+            severity: warning
+            component: gpu
+          annotations:
+            summary: "GPU thermal throttling risk on {{`{{ $labels.Hostname }}`}} (GPU {{`{{ $labels.gpu }}`}})"
+            description: >-
+              GPU temperature is {{`{{ $value }}`}}°C, above the
+              {{ .Values.rules.thresholds.temperatureCelsius }}°C threshold. Sustained heat
+              causes clock throttling and reduced throughput.
+
+        - alert: GpuVramExhaustion
+          expr: >-
+            100 * DCGM_FI_DEV_FB_USED / clamp_min(DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE, 1)
+            > {{ .Values.rules.thresholds.vramPercent }}
+          for: 10m
+          labels:
+            severity: warning
+            component: gpu
+          annotations:
+            summary: "GPU VRAM near exhaustion on {{`{{ $labels.Hostname }}`}} (GPU {{`{{ $labels.gpu }}`}})"
+            description: >-
+              VRAM utilization is {{`{{ $value | printf "%.1f" }}`}}%, above the
+              {{ .Values.rules.thresholds.vramPercent }}% threshold. New workloads may fail
+              to schedule or OOM.
+
+        - alert: GpuNotReporting
+          expr: up{job=~".*dcgm.*"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            component: gpu
+          annotations:
+            summary: "DCGM exporter target down ({{`{{ $labels.instance }}`}})"
+            description: >-
+              The DCGM exporter scrape target has been unreachable for 5 minutes.
+              GPU telemetry is blind until this recovers.
+
+    - name: gpu.network
+      rules:
+        - alert: GpuPodTcpLatencyHigh
+          expr: >-
+            histogram_quantile(0.99,
+              sum(rate(latency_bucket{otel_scope_name="gadget_tcp_latency_us"}[5m])) by (le)
+            ) > {{ .Values.rules.thresholds.tcpLatencyMicros }}
+          for: 10m
+          labels:
+            severity: warning
+            component: network
+          annotations:
+            summary: "High pod-to-pod TCP latency (p99 {{`{{ $value | printf \"%.0f\" }}`}}µs)"
+            description: >-
+              p99 TCP round-trip latency is {{`{{ $value }}`}}µs, above the
+              {{ .Values.rules.thresholds.tcpLatencyMicros }}µs threshold. Check for
+              congestion, retransmits, or noisy-neighbour effects.
+{{- end }}

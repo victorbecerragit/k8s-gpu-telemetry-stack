@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ebpf-probes.fullname" . }}-commands
+  labels:
+    {{- include "ebpf-probes.labels" . | nindent 4 }}
+data:
+  tcp-latency-example.txt: |
+    kubectl gadget run trace_tcpconnect -n <workload-namespace>
+    kubectl gadget run top_tcp -n <workload-namespace>

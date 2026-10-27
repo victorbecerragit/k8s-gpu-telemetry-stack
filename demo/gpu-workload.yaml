@@ -1,0 +1,61 @@
+# Sustained GPU load for the telemetry demo.
+#
+# Runs a matmul loop so DCGM reports non-zero SM utilization, VRAM usage, PCIe
+# traffic and a realistic temperature curve.
+#
+# Apply directly:
+#   kubectl apply -f demo/gpu-workload.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gpu-burn
+  namespace: gpu-demo
+  labels:
+    app.kubernetes.io/name: gpu-burn
+    app.kubernetes.io/part-of: gpu-telemetry-stack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gpu-burn
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gpu-burn
+        app.kubernetes.io/part-of: gpu-telemetry-stack
+    spec:
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      nodeSelector:
+        workload: gpu-telemetry
+      containers:
+        - name: gpu-burn
+          image: nvcr.io/nvidia/pytorch:24.08-py3
+          command:
+            - python3
+            - -c
+            - |
+              import os, time, torch
+              dev = torch.device("cuda:0")
+              n = int(os.environ.get("MATMUL_SIZE", "4096"))
+              a = torch.randn(n, n, device=dev)
+              b = torch.randn(n, n, device=dev)
+              print(f"gpu-burn: {torch.cuda.get_device_name(0)} matmul {n}x{n}", flush=True)
+              i = 0
+              while True:
+                  c = torch.matmul(a, b)
+                  torch.cuda.synchronize()
+                  i += 1
+                  if i % 50 == 0:
+                      print(f"gpu-burn: iteration {i} ok", flush=True)
+                  time.sleep(0.05)
+          env:
+            - name: MATMUL_SIZE
+              value: "4096"
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+          securityContext:
+            allowPrivilegeEscalation: false

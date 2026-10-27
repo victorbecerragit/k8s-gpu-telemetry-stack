@@ -1,0 +1,84 @@
+enabled: true
+
+inspektorGadget:
+  enabled: true
+  image:
+    repository: ghcr.io/inspektor-gadget/inspektor-gadget
+    tag: "v0.43.0"
+    pullPolicy: IfNotPresent
+  # -- Long-running TCP RTT profiler. `profile_tcprtt` emits a native histogram
+  #    of kernel-smoothed TCP round-trip time in microseconds, which is what the
+  #    network dashboard panel and the GpuPodTcpLatencyHigh alert consume.
+  #    (`trace_tcp` only reports connect/accept/close events and has no latency.)
+  #
+  #    The gadget's data source is named `tcprtt`, so both the annotation and the
+  #    metrics-name mapping must use that name. The OTel Prometheus exporter
+  #    exposes the histogram as `latency_bucket{otel_scope_name="<metrics-name>"}`.
+  command:
+    - /bin/sh
+    - -c
+  args:
+    - >-
+      exec ig run profile_tcprtt
+      --timeout 0
+      --otel-metrics-listen
+      --otel-metrics-listen-address :2224
+      --annotate "tcprtt:metrics.collect=true"
+      --otel-metrics-name "tcprtt:gadget_tcp_latency_us"
+  extraEnv: []
+
+  # -- Prometheus metrics endpoint exposed by the gadget
+  metrics:
+    enabled: true
+    port: 2224
+    path: /metrics
+
+# -- Pod-level security context
+podSecurityContext: {}
+
+# -- Liveness probe: verify the gadget binary is present and executable
+livenessProbe:
+  enabled: true
+  command:
+    - /bin/sh
+    - -c
+    - "test -x /usr/bin/ig || test -x /bin/ig"
+  initialDelaySeconds: 20
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# -- Readiness probe against the gadget metrics endpoint
+readinessProbe:
+  enabled: true
+  path: /metrics
+  initialDelaySeconds: 20
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# -- Scrape the gadget metrics endpoint from Prometheus
+serviceMonitor:
+  enabled: true
+  interval: 15s
+
+podAnnotations: {}
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+cilium:
+  hubbleRelay:
+    enabled: true
+  hubbleUI:
+    enabled: false
+
+tolerations:
+  - operator: Exists
+
+nodeSelector: {}

@@ -1,0 +1,11 @@
+apiVersion: v2
+name: gpu-operator
+description: Wrapper chart for NVIDIA GPU Operator
+type: application
+version: 0.1.0
+appVersion: "24.9.2"
+
+dependencies:
+  - name: gpu-operator
+    version: 24.9.2
+    repository: https://helm.ngc.nvidia.com/nvidia

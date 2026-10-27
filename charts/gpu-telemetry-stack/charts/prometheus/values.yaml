@@ -1,0 +1,21 @@
+enabled: true
+
+# -- GPU/network SRE alerting rules (rendered as a PrometheusRule CR)
+rules:
+  enabled: true
+  # -- Extra labels applied to the PrometheusRule (must match Prometheus ruleSelector)
+  labels: {}
+  thresholds:
+    # -- GPU temperature (°C) above which thermal throttling is alerted
+    temperatureCelsius: 85
+    # -- VRAM utilization (%) above which exhaustion is alerted
+    vramPercent: 90
+    # -- p99 pod-to-pod TCP latency (µs) above which latency is alerted
+    tcpLatencyMicros: 5000
+
+kube-prometheus-stack:
+  prometheus:
+    prometheusSpec:
+      retention: 15d
+  alertmanager:
+    enabled: true

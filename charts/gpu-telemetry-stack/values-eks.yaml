@@ -1,0 +1,24 @@
+global:
+  clusterName: eks-gpu-cluster
+  namespace: gpu-telemetry
+
+gpu-operator:
+  gpu-operator:
+    driver:
+      enabled: false
+    toolkit:
+      enabled: true
+    mig:
+      strategy: ""
+
+dcgm-exporter:
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+
+prometheus:
+  kube-prometheus-stack:
+    prometheus:
+      prometheusSpec:
+        retention: 15d

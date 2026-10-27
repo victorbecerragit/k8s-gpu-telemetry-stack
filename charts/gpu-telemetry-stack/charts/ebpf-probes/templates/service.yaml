@@ -1,0 +1,19 @@
+{{- if and .Values.inspektorGadget.enabled .Values.inspektorGadget.metrics.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ebpf-probes.fullname" . }}-metrics
+  labels:
+    {{- include "ebpf-probes.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: {{ include "ebpf-probes.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: metrics
+      port: {{ .Values.inspektorGadget.metrics.port }}
+      targetPort: metrics
+      protocol: TCP
+{{- end }}

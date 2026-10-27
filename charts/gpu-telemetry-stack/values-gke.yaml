@@ -1,0 +1,65 @@
+# GKE demo overlay.
+#
+# Differences from the EKS overlay:
+#   - GKE manages the NVIDIA driver and device plugin on GPU node pools, so the
+#     GPU Operator is disabled to avoid a second device plugin.
+#   - The GPU pool is tainted (nvidia.com/gpu=present:NoSchedule), so every
+#     GPU-facing DaemonSet needs an explicit toleration.
+#   - COS_CONTAINERD nodes expose /sys/fs/bpf and /sys/kernel/debug, which the
+#     eBPF probes require.
+
+global:
+  clusterName: gpu-telemetry-demo
+  namespace: gpu-telemetry
+
+# GKE installs the driver + device plugin itself.
+gpu-operator:
+  enabled: false
+
+dcgm-exporter:
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  nodeSelector:
+    workload: gpu-telemetry
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+
+ebpf-probes:
+  tolerations:
+    - operator: Exists
+  # Run the gadget on every node so pod-to-pod latency is visible regardless of
+  # which pool the source or destination pod lands on.
+  nodeSelector: {}
+
+prometheus:
+  kube-prometheus-stack:
+    prometheus:
+      prometheusSpec:
+        retention: 6h
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: "1"
+            memory: 1Gi
+        # Keep Prometheus off the GPU pool (it is tainted anyway, but this makes
+        # the intent explicit and survives a taint change).
+        nodeSelector:
+          workload: observability
+    alertmanager:
+      enabled: true
+      alertmanagerSpec:
+        nodeSelector:
+          workload: observability
+    grafana:
+      nodeSelector:
+        workload: observability
+
+grafana:
+  grafana:
+    nodeSelector:
+      workload: observability

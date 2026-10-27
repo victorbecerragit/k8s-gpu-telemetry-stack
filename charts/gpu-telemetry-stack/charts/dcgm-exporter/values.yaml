@@ -1,0 +1,63 @@
+enabled: true
+
+image:
+  repository: nvcr.io/nvidia/k8s/dcgm-exporter
+  tag: "3.3.8-3.6.0-ubuntu22.04"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 9400
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+
+# -- Pod-level security context (DCGM needs host access to NVML)
+podSecurityContext:
+  runAsNonRoot: false
+
+# -- Container-level security context
+securityContext:
+  privileged: true
+  allowPrivilegeEscalation: true
+  readOnlyRootFilesystem: false
+
+# -- Liveness probe against the metrics endpoint
+livenessProbe:
+  enabled: true
+  path: /metrics
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# -- Readiness probe against the metrics endpoint
+readinessProbe:
+  enabled: true
+  path: /metrics
+  initialDelaySeconds: 10
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+extraEnv: []
+
+tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+
+nodeSelector: {}

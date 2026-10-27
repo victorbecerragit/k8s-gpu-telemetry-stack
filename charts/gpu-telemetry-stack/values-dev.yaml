@@ -1,0 +1,22 @@
+global:
+  clusterName: dev-gpu-cluster
+  namespace: gpu-telemetry
+
+dcgm-exporter:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      cpu: 150m
+      memory: 192Mi
+
+prometheus:
+  kube-prometheus-stack:
+    prometheus:
+      prometheusSpec:
+        retention: 3d
+
+grafana:
+  grafana:
+    adminPassword: dev-admin

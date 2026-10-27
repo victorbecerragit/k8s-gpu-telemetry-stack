@@ -1,0 +1,31 @@
+# Helm build artifacts
+charts/**/charts/*.tgz
+charts/**/Chart.lock
+
+# Local rendered output
+*.rendered.yaml
+rendered/
+
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/terraform.tfvars
+**/*.tfplan
+crash.log
+
+# Demo snapshots captured from a live cluster (keep the synthetic example)
+demo/snapshots/*
+!demo/snapshots/example.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# OS / editor noise
+.DS_Store
+*.swp

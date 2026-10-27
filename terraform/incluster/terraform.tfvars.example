@@ -1,0 +1,18 @@
+gcp_project_id = "YOUR_GCP_PROJECT_ID"
+gcp_region     = "us-central1"
+cluster_name   = "gpu-telemetry-demo"
+cluster_location = "us-central1-a"
+
+release_name = "gpu-telemetry"
+namespace    = "gpu-telemetry"
+
+# Demo workloads generate sustained GPU load and pod-to-pod TCP traffic so the
+# dashboard and alerts have real data.
+install_demo_workloads = true
+demo_namespace         = "gpu-demo"
+gpu_workload_replicas  = 1
+gpu_workload_gpu_count = 1
+
+# Optional
+# grafana_admin_password = "change-me"
+# helm_timeout_seconds   = 900

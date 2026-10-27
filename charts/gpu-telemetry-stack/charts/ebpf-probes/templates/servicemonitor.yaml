@@ -1,0 +1,17 @@
+{{- if and .Values.inspektorGadget.enabled .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "ebpf-probes.fullname" . }}
+  labels:
+    {{- include "ebpf-probes.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "ebpf-probes.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  endpoints:
+    - port: metrics
+      path: {{ .Values.inspektorGadget.metrics.path }}
+      interval: {{ .Values.serviceMonitor.interval }}
+{{- end }}
