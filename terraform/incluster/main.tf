@@ -99,7 +99,10 @@ resource "helm_release" "gpu_telemetry" {
   }
 
   dynamic "set" {
-    for_each = var.grafana_admin_password == "" ? [] : [var.grafana_admin_password]
+    # `for_each` requires a map or set, not a list. A ternary between a tuple
+    # and an empty list also produces inconsistent types on older Terraform
+    # versions, so build a set explicitly.
+    for_each = toset(var.grafana_admin_password == "" ? [] : [var.grafana_admin_password])
     content {
       name  = "grafana.grafana.adminPassword"
       value = set.value

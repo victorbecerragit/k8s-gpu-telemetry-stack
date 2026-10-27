@@ -28,6 +28,40 @@ def _require(tool: str) -> str:
     return path
 
 
+# Wrapper sub-charts that vendor an upstream chart. If these are not built, the
+# parent chart renders almost nothing and every render assertion fails with a
+# confusing message. Check up front and fail with an actionable one instead.
+WRAPPER_SUBCHARTS = ("prometheus", "grafana", "gpu-operator")
+
+
+def _missing_nested_deps() -> list[str]:
+    missing = []
+    for name in WRAPPER_SUBCHARTS:
+        chart_yaml = CHART_DIR / "charts" / name / "Chart.yaml"
+        if not chart_yaml.exists():
+            continue
+        if "dependencies:" not in chart_yaml.read_text():
+            continue
+        vendored = list((CHART_DIR / "charts" / name / "charts").glob("*.tgz"))
+        if not vendored:
+            missing.append(name)
+    return missing
+
+
+def _assert_nested_deps_built() -> None:
+    """Fail with an actionable message when wrapper deps were never built."""
+    missing = _missing_nested_deps()
+    if missing:
+        pytest.fail(
+            "Nested chart dependencies are missing for: "
+            + ", ".join(missing)
+            + ".\n`helm dependency build` on the root chart does NOT recurse into "
+            "wrapper sub-charts, so the parent renders almost nothing.\n"
+            "Run: ./scripts/build-deps.sh",
+            pytrace=False,
+        )
+
+
 @pytest.fixture(scope="session")
 def helm() -> str:
     return _require("helm")
@@ -40,6 +74,7 @@ def terraform() -> str:
 
 def render_chart(helm_bin: str, *value_files: str) -> list[dict]:
     """Render the chart and return the parsed Kubernetes documents."""
+    _assert_nested_deps_built()
     cmd = [helm_bin, "template", "gpu-telemetry", str(CHART_DIR)]
     for vf in value_files:
         cmd += ["-f", str(vf)]
