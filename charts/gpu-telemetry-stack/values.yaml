@@ -40,8 +40,11 @@ ebpf-probes:
   inspektorGadget:
     enabled: true
     image:
-      repository: ghcr.io/inspektor-gadget/inspektor-gadget
-      tag: "latest"
+      # The `ig` CLI image, NOT `inspektor-gadget` (that is the daemon image and
+      # has no `ig` binary). Both are distroless: no /bin/sh, so the container
+      # command must exec `ig` directly.
+      repository: ghcr.io/inspektor-gadget/ig
+      tag: "v0.43.0"
       pullPolicy: IfNotPresent
 
 # -- Prometheus sub-chart

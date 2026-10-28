@@ -14,17 +14,23 @@ inspektorGadget:
   #    The gadget's data source is named `tcprtt`, so both the annotation and the
   #    metrics-name mapping must use that name. The OTel Prometheus exporter
   #    exposes the histogram as `latency_bucket{otel_scope_name="<metrics-name>"}`.
+  #
+  #    The image is distroless (no /bin/sh), so `ig` is exec'd directly rather
+  #    than wrapped in `sh -c`.
   command:
-    - /bin/sh
-    - -c
+    - ig
   args:
-    - >-
-      exec ig run profile_tcprtt
-      --timeout 0
-      --otel-metrics-listen
-      --otel-metrics-listen-address :2224
-      --annotate "tcprtt:metrics.collect=true"
-      --otel-metrics-name "tcprtt:gadget_tcp_latency_us"
+    - run
+    - profile_tcprtt
+    - --timeout
+    - "0"
+    - --otel-metrics-listen
+    - --otel-metrics-listen-address
+    - ":2224"
+    - --annotate
+    - "tcprtt:metrics.collect=true"
+    - --otel-metrics-name
+    - "tcprtt:gadget_tcp_latency_us"
   extraEnv: []
 
   # -- Prometheus metrics endpoint exposed by the gadget
@@ -36,13 +42,13 @@ inspektorGadget:
 # -- Pod-level security context
 podSecurityContext: {}
 
-# -- Liveness probe: verify the gadget binary is present and executable
+# -- Liveness probe: the image is distroless, so probe the binary directly
+#    instead of shelling out to `test -x`.
 livenessProbe:
   enabled: true
   command:
-    - /bin/sh
-    - -c
-    - "test -x /usr/bin/ig || test -x /bin/ig"
+    - ig
+    - version
   initialDelaySeconds: 20
   periodSeconds: 30
   timeoutSeconds: 5

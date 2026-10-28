@@ -2,7 +2,7 @@ apiVersion: v2
 name: gpu-telemetry-stack
 description: Production-grade GPU observability for Kubernetes — DCGM hardware metrics, eBPF TCP latency, Prometheus alerts and a Grafana dashboard in one chart.
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "1.0.0"
 
 home: https://github.com/victorbecerragit/k8s-gpu-telemetry-stack
@@ -44,18 +44,14 @@ annotations:
     - name: Victor Becerra
       email: victorbecerragit@users.noreply.github.com
   artifacthub.io/changes: |
-    - kind: added
-      description: Initial public release of the umbrella chart
-    - kind: added
-      description: DCGM exporter with SM, VRAM, PCIe, temperature and XID metrics
-    - kind: added
-      description: eBPF profile_tcprtt DaemonSet exporting TCP RTT histograms
-    - kind: added
-      description: Prometheus wrapper with five GPU/network SRE alert rules
-    - kind: added
-      description: Grafana wrapper with the GPU Telemetry fleet dashboard
-    - kind: added
-      description: GKE and EKS value overlays
+    - kind: fixed
+      description: eBPF probes now use the ig CLI image (ghcr.io/inspektor-gadget/ig) instead of the daemon image, which has no ig binary
+    - kind: fixed
+      description: eBPF container execs ig directly; the image is distroless and has no /bin/sh
+    - kind: fixed
+      description: eBPF liveness probe uses `ig version` instead of a shell test
+    - kind: changed
+      description: eBPF image tag pinned to v0.43.0 instead of latest
   artifacthub.io/recommendations: |
     - url: https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack
     - url: https://artifacthub.io/packages/helm/grafana/grafana

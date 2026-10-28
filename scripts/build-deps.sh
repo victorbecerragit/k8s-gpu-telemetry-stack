@@ -32,6 +32,23 @@ build_recursive() {
   done
 
   if grep -q "^dependencies:" "${chart}/Chart.yaml" 2>/dev/null; then
+    # `helm dependency build` reuses an existing .tgz when the lock digest still
+    # matches, so edits inside a local sub-chart directory are silently ignored
+    # and the stale package keeps shadowing the source. Drop the local packages
+    # first so they are always rebuilt from the working tree.
+    local dep
+    while IFS= read -r dep; do
+      [[ -n "${dep}" ]] || continue
+      rm -f "${chart}/charts/${dep}"-*.tgz
+    done < <(
+      awk '
+        /^dependencies:/ { in_deps = 1; next }
+        in_deps && /^[^[:space:]-]/ { in_deps = 0 }
+        in_deps && /^[[:space:]]*-[[:space:]]*name:/ { name = $3 }
+        in_deps && /repository:[[:space:]]*file:/ && name { print name; name = "" }
+      ' "${chart}/Chart.yaml"
+    )
+
     echo "  -> building $(basename "${chart}")"
     helm dependency build "${chart}" >/dev/null
   fi

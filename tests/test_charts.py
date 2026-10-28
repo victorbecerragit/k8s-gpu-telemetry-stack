@@ -66,6 +66,50 @@ def test_ebpf_exposes_metrics_port_and_probes(base_render):
     assert container.get("readinessProbe", {}).get("httpGet", {}).get("path") == "/metrics"
 
 
+def test_ebpf_uses_the_ig_cli_image_not_the_daemon_image(base_render):
+    """`inspektor-gadget` is the daemon image and has no `ig` binary.
+
+    Using it produces `exec: "ig": executable file not found in $PATH` at
+    container start, which surfaces as CrashLoopBackOff.
+    """
+    ds = find_docs(base_render, "DaemonSet", "ebpf")
+    image = ds[0]["spec"]["template"]["spec"]["containers"][0]["image"]
+    assert image.startswith("ghcr.io/inspektor-gadget/ig:"), (
+        f"expected the ig CLI image, got {image}"
+    )
+    assert not image.startswith("ghcr.io/inspektor-gadget/inspektor-gadget:")
+
+
+def test_ebpf_image_tag_is_pinned(base_render):
+    """`latest` drifts silently and defeats reproducibility."""
+    ds = find_docs(base_render, "DaemonSet", "ebpf")
+    image = ds[0]["spec"]["template"]["spec"]["containers"][0]["image"]
+    tag = image.rsplit(":", 1)[-1]
+    assert tag != "latest", "pin the gadget image tag"
+    assert tag.startswith("v"), f"expected a version tag, got {tag}"
+
+
+def test_ebpf_does_not_wrap_command_in_a_shell(base_render):
+    """The ig image is distroless — there is no /bin/sh to exec."""
+    ds = find_docs(base_render, "DaemonSet", "ebpf")
+    container = ds[0]["spec"]["template"]["spec"]["containers"][0]
+    command = container.get("command", [])
+    assert command, "container must set an explicit command"
+    assert command[0] == "ig", f"expected `ig` as entrypoint, got {command}"
+    assert "/bin/sh" not in command, "the ig image has no /bin/sh"
+    assert "sh" not in command
+
+
+def test_ebpf_liveness_probe_avoids_shell(base_render):
+    ds = find_docs(base_render, "DaemonSet", "ebpf")
+    container = ds[0]["spec"]["template"]["spec"]["containers"][0]
+    probe = container.get("livenessProbe", {})
+    cmd = probe.get("exec", {}).get("command", [])
+    assert cmd, "liveness probe must be defined"
+    assert "/bin/sh" not in cmd, "distroless image has no shell for `test -x`"
+    assert cmd[0] == "ig"
+
+
 def test_ebpf_service_and_servicemonitor_rendered(base_render):
     svc = find_docs(base_render, "Service", "ebpf")
     assert svc, "eBPF metrics Service not rendered"
