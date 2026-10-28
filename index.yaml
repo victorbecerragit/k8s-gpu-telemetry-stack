@@ -1,0 +1,94 @@
+apiVersion: v1
+entries:
+  gpu-telemetry-stack:
+  - annotations:
+      artifacthub.io/category: monitoring-logging
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial public release of the umbrella chart
+        - kind: added
+          description: DCGM exporter with SM, VRAM, PCIe, temperature and XID metrics
+        - kind: added
+          description: eBPF profile_tcprtt DaemonSet exporting TCP RTT histograms
+        - kind: added
+          description: Prometheus wrapper with five GPU/network SRE alert rules
+        - kind: added
+          description: Grafana wrapper with the GPU Telemetry fleet dashboard
+        - kind: added
+          description: GKE and EKS value overlays
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://github.com/victorbecerragit/k8s-gpu-telemetry-stack#readme
+        - name: GKE demo guide
+          url: https://github.com/victorbecerragit/k8s-gpu-telemetry-stack#gke-demo
+        - name: Contributing
+          url: https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/blob/main/CONTRIBUTING.md
+        - name: Security policy
+          url: https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/blob/main/SECURITY.md
+      artifacthub.io/maintainers: |
+        - name: Victor Becerra
+          email: victorbecerragit@users.noreply.github.com
+      artifacthub.io/prerelease: "true"
+      artifacthub.io/recommendations: |
+        - url: https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack
+        - url: https://artifacthub.io/packages/helm/grafana/grafana
+      artifacthub.io/screenshots: |
+        - title: Fleet summary
+          url: https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/docs/images/fleet-summary.svg
+        - title: SM utilization per GPU
+          url: https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/docs/images/sm-utilization.svg
+        - title: Pod-to-pod TCP RTT (eBPF)
+          url: https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/docs/images/tcp-rtt-p99.svg
+    apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-10-28T13:24:00.753984885Z"
+    dependencies:
+    - condition: dcgm-exporter.enabled
+      name: dcgm-exporter
+      repository: file://charts/dcgm-exporter
+      version: 0.1.0
+    - condition: ebpf-probes.enabled
+      name: ebpf-probes
+      repository: file://charts/ebpf-probes
+      version: 0.1.0
+    - condition: prometheus.enabled
+      name: prometheus
+      repository: file://charts/prometheus
+      version: 0.1.0
+    - condition: grafana.enabled
+      name: grafana
+      repository: file://charts/grafana
+      version: 0.1.0
+    - condition: gpu-operator.enabled
+      name: gpu-operator
+      repository: file://charts/gpu-operator
+      version: 0.1.0
+    description: Production-grade GPU observability for Kubernetes — DCGM hardware
+      metrics, eBPF TCP latency, Prometheus alerts and a Grafana dashboard in one
+      chart.
+    digest: 3041ea108f5f0b343bdf15ac613ee2480b4c12815998ee7be4278bab2e96e4cd
+    home: https://github.com/victorbecerragit/k8s-gpu-telemetry-stack
+    icon: https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/docs/icon.svg
+    keywords:
+    - gpu
+    - nvidia
+    - dcgm
+    - observability
+    - prometheus
+    - grafana
+    - ebpf
+    - kubernetes
+    - telemetry
+    - sre
+    maintainers:
+    - name: Victor Becerra
+      url: https://github.com/victorbecerragit
+    name: gpu-telemetry-stack
+    sources:
+    - https://github.com/victorbecerragit/k8s-gpu-telemetry-stack
+    type: application
+    urls:
+    - https://victorbecerragit.github.io/k8s-gpu-telemetry-stack/gpu-telemetry-stack-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-10-28T13:24:00.683521699Z"

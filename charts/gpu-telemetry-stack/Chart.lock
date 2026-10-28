@@ -1,0 +1,18 @@
+dependencies:
+- name: dcgm-exporter
+  repository: file://charts/dcgm-exporter
+  version: 0.1.0
+- name: ebpf-probes
+  repository: file://charts/ebpf-probes
+  version: 0.1.0
+- name: prometheus
+  repository: file://charts/prometheus
+  version: 0.1.0
+- name: grafana
+  repository: file://charts/grafana
+  version: 0.1.0
+- name: gpu-operator
+  repository: file://charts/gpu-operator
+  version: 0.1.0
+digest: sha256:f50b4411af92761c3d4a32dd25b81bc4417fcf6869f0df72fb77ffb036ef2058
+generated: "2026-10-28T13:23:59.031533639Z"
