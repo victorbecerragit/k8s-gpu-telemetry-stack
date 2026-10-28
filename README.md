@@ -2,6 +2,14 @@
 
 Production-grade observability bootstrap for GPU-accelerated Kubernetes clusters.
 
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Helm](https://img.shields.io/badge/helm-v3-0f1689.svg)](https://helm.sh)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-%E2%89%A51.27-326ce5.svg)](https://kubernetes.io)
+[![GPU](https://img.shields.io/badge/GPU-NVIDIA%20L4%20%7C%20T4%20%7C%20A100-76b900.svg)](https://www.nvidia.com)
+[![Lint and Test](https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/actions/workflows/lint.yaml/badge.svg)](https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/actions/workflows/lint.yaml)
+[![Publish Helm Chart](https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/actions/workflows/publish-helm-chart.yml/badge.svg)](https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/actions/workflows/publish-helm-chart.yml)
+[![Helm repo](https://img.shields.io/badge/helm%20repo-gh--pages-0f1689.svg)](https://victorbecerragit.github.io/k8s-gpu-telemetry-stack)
+
 ![Fleet summary](docs/images/fleet-summary.svg)
 
 > **About the charts in this README.** The images are rendered from
@@ -9,6 +17,30 @@ Production-grade observability bootstrap for GPU-accelerated Kubernetes clusters
 > `scripts/generate-example-snapshot.py`. They are watermarked
 > `ILLUSTRATIVE DATA` and are not captured telemetry. Run the
 > [GKE demo](#gke-demo) to replace them with real DCGM and eBPF data.
+
+## Install from the Helm repository
+
+GitHub Pages **is** the Helm repository — it serves `index.yaml` and the packaged
+`.tgz` files, so `helm repo add` works against it directly. No third-party
+registry is involved.
+
+```bash
+helm repo add gpu-telemetry-stack https://victorbecerragit.github.io/k8s-gpu-telemetry-stack
+helm repo update
+
+# GKE — GKE manages the NVIDIA driver and device plugin
+helm install gpu-telemetry gpu-telemetry-stack/gpu-telemetry-stack \
+  -n gpu-telemetry --create-namespace \
+  -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-gke.yaml
+
+# EKS — the GPU Operator installs drivers
+helm install gpu-telemetry gpu-telemetry-stack/gpu-telemetry-stack \
+  -n gpu-telemetry --create-namespace \
+  -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-eks.yaml
+```
+
+Browse the repository index at
+<https://victorbecerragit.github.io/k8s-gpu-telemetry-stack>.
 
 ## Included components
 
@@ -179,6 +211,8 @@ Add Alloy when at least one of these becomes true:
 
 ```text
 charts/gpu-telemetry-stack/          # root chart
+  Chart.yaml                         # metadata, keywords, dependencies
+  README.md                          # chart-level docs (rendered by Artifact Hub if listed)
   values.yaml                        # defaults
   values-gke.yaml                    # GKE overlay (GPU Operator off)
   values-eks.yaml                    # EKS overlay
@@ -192,8 +226,10 @@ terraform/                           # GKE infra root (VPC, cluster, node pools)
 terraform/incluster/                 # Helm + demo workload deployment root
 demo/                                # demo workloads and captured snapshots
 docs/images/                         # rendered charts used by this README
+docs/pages/index.html                # landing page published to gh-pages
 scripts/                             # bootstrap, lint, validation, demo tooling
 tests/                               # pytest suite
+.github/workflows/                   # lint/test + chart publishing
 ```
 
 ## Scripts
@@ -264,6 +300,63 @@ Notable regression guards:
    ./scripts/validate-dcgm-metrics.sh
    ./scripts/validate-ebpf-probes.sh
    ```
+
+## Releasing
+
+The chart is published to GitHub Pages by
+`.github/workflows/publish-helm-chart.yml`. To cut a release:
+
+1. Bump `version` in `charts/gpu-telemetry-stack/Chart.yaml` (and `appVersion`
+   if the bundled stack changed).
+2. Update the `artifacthub.io/changes` annotation in the same file (it doubles
+   as the human-readable changelog in `index.yaml`).
+3. Commit, then tag with a matching `v` prefix:
+
+   ```bash
+   git tag v0.2.0
+   git push origin v0.2.0
+   ```
+
+The workflow validates the tag against `Chart.yaml`, lints, renders all three
+overlays, runs the test suite, packages the chart, merges the new entry into the
+existing `index.yaml`, and pushes to `gh-pages`. A GitHub release is created
+automatically.
+
+You can also run it manually from the Actions tab with `dry_run` enabled to
+validate without publishing.
+
+### Enabling GitHub Pages
+
+One-time setup after the first publish:
+
+1. **Settings → Pages → Source: Deploy from a branch**
+2. Branch: `gh-pages`, folder: `/ (root)`
+3. The repository is then served at
+   `https://victorbecerragit.github.io/k8s-gpu-telemetry-stack`
+
+### Optional: listing on Artifact Hub
+
+Artifact Hub is a **discovery site, not a registry**. It crawls an existing Helm
+repository and indexes it for search; it does not host charts and does not
+change how anyone installs them. `helm repo add` still points at the GitHub
+Pages URL either way.
+
+There is no need to register until the chart has been exercised a few times.
+When you are ready, add the repository at
+<https://artifacthub.io/control-panel/repositories>:
+
+- **Kind:** Helm charts
+- **Name:** `gpu-telemetry-stack`
+- **URL:** `https://victorbecerragit.github.io/k8s-gpu-telemetry-stack`
+
+Artifact Hub reads the `annotations` block in `Chart.yaml` for the license,
+category, links, screenshots and changelog. Those annotations are already in
+place and are inert until the repository is registered, so nothing needs to
+change later. Once listed, add this badge to the top of this README:
+
+```markdown
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/gpu-telemetry-stack)](https://artifacthub.io/packages/search?repo=gpu-telemetry-stack)
+```
 
 ## Notes
 

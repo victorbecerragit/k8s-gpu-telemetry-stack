@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gpu-telemetry-stack — Helm chart repository</title>
+<meta name="description" content="Production-grade GPU observability for Kubernetes: DCGM hardware metrics, eBPF TCP latency, Prometheus alerts and a Grafana dashboard in one Helm chart.">
+<link rel="icon" href="https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/docs/icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #131c2e;
+    --panel-2: #182338;
+    --border: #24314a;
+    --text: #e6edf7;
+    --muted: #93a4bf;
+    --accent: #76b900;
+    --accent-soft: #a3e635;
+    --code-bg: #0a1018;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 600px at 15% -10%, #16233b 0%, var(--bg) 55%) no-repeat, var(--bg);
+    color: var(--text);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent-soft); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+
+  header { padding: 72px 0 40px; }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .brand img { width: 64px; height: 64px; border-radius: 14px; }
+  h1 { font-size: clamp(1.9rem, 4vw, 2.7rem); line-height: 1.15; margin: 0; letter-spacing: -0.02em; }
+  .tagline { color: var(--muted); font-size: 1.1rem; margin: 18px 0 0; max-width: 62ch; }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .badges img { height: 20px; }
+
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 20px; border-radius: 10px; font-weight: 600; font-size: 0.95rem;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+    transition: border-color .15s, transform .15s;
+  }
+  .btn:hover { border-color: var(--accent); text-decoration: none; transform: translateY(-1px); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #08130a; }
+  .btn.primary:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
+
+  section { padding: 44px 0; border-top: 1px solid var(--border); }
+  h2 { font-size: 1.35rem; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; overflow-x: auto; font-size: 0.88rem; line-height: 1.6;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+  p code, li code { background: var(--panel-2); padding: 2px 6px; border-radius: 5px; font-size: 0.88em; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+  }
+  .card h3 { margin: 0 0 6px; font-size: 1rem; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: .04em; }
+  td code { font-size: 0.86em; }
+
+  footer { padding: 40px 0 64px; color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--border); }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <img src="https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/docs/icon.svg" alt="">
+      <h1>gpu-telemetry-stack</h1>
+    </div>
+    <p class="tagline">
+      Production-grade GPU observability for Kubernetes. DCGM hardware metrics,
+      eBPF pod-to-pod TCP latency, Prometheus SRE alerts and a Grafana dashboard —
+      in one umbrella Helm chart.
+    </p>
+
+    <div class="badges">
+      <img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License">
+      <img src="https://img.shields.io/badge/helm-v3-0f1689.svg" alt="Helm v3">
+      <img src="https://img.shields.io/badge/kubernetes-%E2%89%A51.27-326ce5.svg" alt="Kubernetes">
+      <img src="https://img.shields.io/badge/GPU-NVIDIA%20L4%20%7C%20T4%20%7C%20A100-76b900.svg" alt="GPU">
+    </div>
+
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/victorbecerragit/k8s-gpu-telemetry-stack">View on GitHub</a>
+      <a class="btn" href="#install">Install</a>
+      <a class="btn" href="index.yaml">index.yaml</a>
+    </div>
+  </header>
+
+  <section id="install">
+    <h2>Install</h2>
+    <p class="sub">Add the repository and install the chart.</p>
+<pre><code>helm repo add gpu-telemetry-stack https://victorbecerragit.github.io/k8s-gpu-telemetry-stack
+helm repo update
+
+# GKE — GKE manages the NVIDIA driver and device plugin
+helm install gpu-telemetry gpu-telemetry-stack/gpu-telemetry-stack \
+  -n gpu-telemetry --create-namespace \
+  -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-gke.yaml
+
+# EKS — the GPU Operator installs drivers
+helm install gpu-telemetry gpu-telemetry-stack/gpu-telemetry-stack \
+  -n gpu-telemetry --create-namespace \
+  -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-eks.yaml</code></pre>
+  </section>
+
+  <section>
+    <h2>What's inside</h2>
+    <p class="sub">Five components, wired together and tested as a unit.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>DCGM exporter</h3>
+        <p>SM utilization, VRAM, PCIe TX/RX, temperature and XID errors straight from the GPU.</p>
+      </div>
+      <div class="card">
+        <h3>eBPF probes</h3>
+        <p>Kernel-level TCP round-trip histograms between pods. No sidecars, no proxies.</p>
+      </div>
+      <div class="card">
+        <h3>Prometheus</h3>
+        <p>kube-prometheus-stack plus five GPU and network SRE alert rules.</p>
+      </div>
+      <div class="card">
+        <h3>Grafana</h3>
+        <p>The <em>GPU Telemetry — Fleet &amp; Network</em> dashboard, auto-provisioned.</p>
+      </div>
+      <div class="card">
+        <h3>GPU Operator</h3>
+        <p>NVIDIA driver and device plugin for EKS. Disabled on GKE, which manages its own.</p>
+      </div>
+      <div class="card">
+        <h3>GKE demo</h3>
+        <p>Terraform + scripts that stand up a disposable cluster and capture real telemetry.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Alerts</h2>
+    <p class="sub">Thresholds are configurable under <code>prometheus.rules.thresholds</code>.</p>
+    <table>
+      <thead>
+        <tr><th>Alert</th><th>Severity</th><th>Trigger</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>GpuXidError</code></td><td>critical</td><td>Any new <code>DCGM_FI_DEV_XID_ERRORS</code> in 5m</td></tr>
+        <tr><td><code>GpuThermalThrottling</code></td><td>warning</td><td>GPU temp &gt; 85 °C for 5m</td></tr>
+        <tr><td><code>GpuVramExhaustion</code></td><td>warning</td><td>VRAM &gt; 90 % for 10m</td></tr>
+        <tr><td><code>GpuNotReporting</code></td><td>critical</td><td>DCGM scrape target down 5m</td></tr>
+        <tr><td><code>GpuPodTcpLatencyHigh</code></td><td>warning</td><td>p99 pod-to-pod TCP RTT &gt; 5000 µs for 10m</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Requirements</h2>
+    <div class="grid">
+      <div class="card"><h3>Kubernetes</h3><p>1.27 or newer.</p></div>
+      <div class="card"><h3>GPU nodes</h3><p>NVIDIA device plugin present (GKE managed, EKS via GPU Operator).</p></div>
+      <div class="card"><h3>Prometheus Operator</h3><p>CRDs installed by the bundled kube-prometheus-stack.</p></div>
+      <div class="card"><h3>eBPF</h3><p>Kernel ≥ 5.4 and privileged pods for the tracing DaemonSet.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      Apache-2.0 licensed ·
+      <a href="https://github.com/victorbecerragit/k8s-gpu-telemetry-stack">Source</a> ·
+      <a href="https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/blob/main/CONTRIBUTING.md">Contributing</a> ·
+      <a href="https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/blob/main/SECURITY.md">Security</a>
+    </p>
+    <p>Charts are published automatically from tagged releases.</p>
+  </footer>
+
+</div>
+</body>
+</html>

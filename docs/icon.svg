@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="GPU Telemetry Stack">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="100%" stop-color="#16233b"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#76b900"/>
+      <stop offset="100%" stop-color="#3f7d00"/>
+    </linearGradient>
+    <linearGradient id="pulse" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#76b900" stop-opacity="0"/>
+      <stop offset="35%" stop-color="#a3e635"/>
+      <stop offset="100%" stop-color="#76b900" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="48" fill="url(#bg)"/>
+
+  <!-- chip body -->
+  <rect x="72" y="72" width="112" height="112" rx="16" fill="url(#chip)" opacity="0.16"/>
+  <rect x="72" y="72" width="112" height="112" rx="16" fill="none" stroke="#76b900" stroke-width="4"/>
+
+  <!-- die -->
+  <rect x="100" y="100" width="56" height="56" rx="8" fill="url(#chip)"/>
+
+  <!-- pins -->
+  <g stroke="#76b900" stroke-width="5" stroke-linecap="round">
+    <path d="M92 72V52M116 72V52M140 72V52M164 72V52"/>
+    <path d="M92 184v20M116 184v20M140 184v20M164 184v20"/>
+    <path d="M72 92H52M72 116H52M72 140H52M72 164H52"/>
+    <path d="M184 92h20M184 116h20M184 140h20M184 164h20"/>
+  </g>
+
+  <!-- telemetry pulse -->
+  <path d="M28 128h34l12-26 16 52 14-34 12 18h112"
+        fill="none" stroke="url(#pulse)" stroke-width="6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

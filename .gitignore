@@ -2,6 +2,9 @@
 charts/**/charts/*.tgz
 charts/**/Chart.lock
 
+# Chart publishing staging directory (created by the publish workflow)
+.deploy/
+
 # Local rendered output
 *.rendered.yaml
 rendered/
