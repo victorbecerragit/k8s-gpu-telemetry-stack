@@ -42,6 +42,20 @@ helm install gpu-telemetry gpu-telemetry-stack/gpu-telemetry-stack \
 Browse the repository index at
 <https://victorbecerragit.github.io/k8s-gpu-telemetry-stack>.
 
+### Install from GHCR (OCI)
+
+The same chart is also published as an OCI artifact, so no `helm repo add` is
+needed:
+
+```bash
+helm install gpu-telemetry oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-stack \
+  --version 0.1.2 \
+  -n gpu-telemetry --create-namespace \
+  -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-gke.yaml
+```
+
+Both registries serve byte-identical packages built from the same tag.
+
 ## Included components
 
 - Root Helm chart (`gpu-telemetry-stack`) orchestrating:

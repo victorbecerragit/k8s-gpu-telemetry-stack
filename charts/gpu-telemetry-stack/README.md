@@ -38,6 +38,15 @@ helm install gpu-telemetry ./charts/gpu-telemetry-stack \
   -f ./charts/gpu-telemetry-stack/values-gke.yaml
 ```
 
+Or straight from the OCI registry (no `helm repo add` required):
+
+```bash
+helm install gpu-telemetry oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-stack \
+  --version 0.1.2 \
+  -n gpu-telemetry --create-namespace \
+  -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-gke.yaml
+```
+
 ## Requirements
 
 - Kubernetes >= 1.27

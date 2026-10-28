@@ -103,6 +103,29 @@ def test_publish_workflow_runs_tests_before_publishing():
     assert validate_idx < publish_idx
 
 
+def test_publish_workflow_pushes_to_ghcr_oci():
+    """The chart is dual-published: GitHub Pages and GHCR (OCI)."""
+    text = PUBLISH_WORKFLOW.read_text()
+    assert "helm registry login ghcr.io" in text
+    assert "--password-stdin" in text
+    assert "secrets.GITHUB_TOKEN" in text
+    assert "helm push" in text
+    assert "oci://" in text
+    assert "ghcr.io/${{ github.repository_owner }}/charts" in text
+
+
+def test_publish_workflow_grants_packages_write():
+    """Without packages:write the GHCR push fails with a 403."""
+    doc = yaml.safe_load(PUBLISH_WORKFLOW.read_text())
+    assert doc["permissions"]["packages"] == "write"
+    assert doc["permissions"]["contents"] == "write"
+
+
+def test_ghcr_push_happens_after_packaging():
+    text = PUBLISH_WORKFLOW.read_text()
+    assert text.index("name: Package chart") < text.index("name: Push chart to GHCR (OCI)")
+
+
 def test_readme_documents_github_pages_as_the_helm_repo():
     """GitHub Pages is the registry; Artifact Hub is only optional discovery."""
     text = (REPO_ROOT / "README.md").read_text()

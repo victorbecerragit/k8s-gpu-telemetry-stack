@@ -1,7 +1,12 @@
 name: Publish Helm Chart
 
-# Publishes the umbrella chart to GitHub Pages so it can be consumed with:
-#   helm repo add gpu-telemetry-stack https://victorbecerragit.github.io/k8s-gpu-telemetry-stack
+# Publishes the umbrella chart to two registries:
+#
+#   1. GitHub Pages (classic HTTP Helm repo)
+#      helm repo add gpu-telemetry-stack https://victorbecerragit.github.io/k8s-gpu-telemetry-stack
+#
+#   2. GHCR (OCI registry)
+#      helm install gpu-telemetry oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-stack
 #
 # Triggered by a `v*` tag whose version matches `version:` in Chart.yaml.
 # Can also be run manually from the Actions tab.
@@ -13,16 +18,19 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Validate and package without pushing to gh-pages"
+        description: "Validate and package without pushing to gh-pages or GHCR"
         type: boolean
         default: false
 
 permissions:
   contents: write
+  # Required to push the packaged chart to ghcr.io with GITHUB_TOKEN.
+  packages: write
 
 env:
   CHART_DIR: charts/gpu-telemetry-stack
   PAGES_URL: https://victorbecerragit.github.io/k8s-gpu-telemetry-stack
+  OCI_REPO: ghcr.io/${{ github.repository_owner }}/charts
   HELM_VERSION: v3.15.4
 
 jobs:
@@ -133,6 +141,21 @@ jobs:
           helm package "$CHART_DIR" --destination .deploy
           ls -lh .deploy/
 
+      - name: Log in to GHCR
+        if: github.event_name == 'push' || inputs.dry_run == false
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push chart to GHCR (OCI)
+        if: github.event_name == 'push' || inputs.dry_run == false
+        run: |
+          set -euo pipefail
+          # `helm push` takes exactly one package; the glob resolves to the
+          # single .tgz produced by the previous step.
+          helm push .deploy/gpu-telemetry-stack-*.tgz "oci://${OCI_REPO}"
+          echo "Pushed to oci://${OCI_REPO}/gpu-telemetry-stack:${{ needs.validate.outputs.chart-version }}"
+
       - name: Build repository index
         run: |
           set -euo pipefail
@@ -212,7 +235,7 @@ jobs:
             const body = [
               `## Helm chart v${chart}`,
               '',
-              '### Install',
+              '### Install from GitHub Pages',
               '```bash',
               'helm repo add gpu-telemetry-stack https://victorbecerragit.github.io/k8s-gpu-telemetry-stack',
               'helm repo update',
@@ -221,10 +244,18 @@ jobs:
               '  -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-gke.yaml',
               '```',
               '',
+              '### Install from GHCR (OCI)',
+              '```bash',
+              `helm install gpu-telemetry oci://ghcr.io/${context.repo.owner}/charts/gpu-telemetry-stack --version ${chart} \\`,
+              '  -n gpu-telemetry --create-namespace \\',
+              '  -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-gke.yaml',
+              '```',
+              '',
               '### Metadata',
               `- **Chart version:** \`${chart}\``,
               `- **App version:** \`${app}\``,
               `- **Chart repository:** https://victorbecerragit.github.io/k8s-gpu-telemetry-stack`,
+              `- **OCI registry:** \`oci://ghcr.io/${context.repo.owner}/charts\``,
               '',
               '### Documentation',
               '- [README](https://github.com/victorbecerragit/k8s-gpu-telemetry-stack#readme)',

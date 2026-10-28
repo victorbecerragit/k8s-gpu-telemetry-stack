@@ -2,7 +2,7 @@ apiVersion: v2
 name: gpu-telemetry-stack
 description: Production-grade GPU observability for Kubernetes — DCGM hardware metrics, eBPF TCP latency, Prometheus alerts and a Grafana dashboard in one chart.
 type: application
-version: 0.1.1
+version: 0.1.2
 appVersion: "1.0.0"
 
 home: https://github.com/victorbecerragit/k8s-gpu-telemetry-stack
@@ -44,6 +44,10 @@ annotations:
     - name: Victor Becerra
       email: victorbecerragit@users.noreply.github.com
   artifacthub.io/changes: |
+    - kind: added
+      description: the chart is now also published to GHCR as an OCI artifact (oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-stack) alongside the GitHub Pages repository
+    - kind: changed
+      description: the publish workflow logs in to ghcr.io with GITHUB_TOKEN and pushes the packaged chart after validation
     - kind: fixed
       description: eBPF probes now use the ig CLI image (ghcr.io/inspektor-gadget/ig) instead of the daemon image, which has no ig binary
     - kind: fixed
