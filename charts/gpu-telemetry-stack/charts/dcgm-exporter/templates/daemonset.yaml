@@ -32,6 +32,7 @@ spec:
             - containerPort: {{ .Values.service.port }}
               name: metrics
               protocol: TCP
+          args: {{- toYaml .Values.kubernetesMode.arguments | nindent 12 }}
           env:
             {{- range .Values.extraEnv }}
             - name: {{ .name }}
@@ -59,6 +60,14 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
+          {{- end }}
+      {{- if .Values.volumes }}
+      volumes:
+        {{- toYaml .Values.volumes | nindent 8 }}
+      {{- end }}
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}
       nodeSelector:

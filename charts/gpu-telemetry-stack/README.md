@@ -2,6 +2,8 @@
 
 Production-grade GPU observability for Kubernetes in a single umbrella chart.
 
+**v0.1.3** — DCGM exporter now supports Kubernetes mode for pod/namespace attribution on GPU metrics.
+
 It bundles four things that are usually wired together by hand:
 
 | Component | What it gives you |
@@ -42,7 +44,7 @@ Or straight from the OCI registry (no `helm repo add` required):
 
 ```bash
 helm install gpu-telemetry oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-stack \
-  --version 0.1.2 \
+  --version 0.1.3 \
   -n gpu-telemetry --create-namespace \
   -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-gke.yaml
 ```
@@ -70,9 +72,16 @@ helm install gpu-telemetry oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-s
 | `dcgm-exporter.enabled` | `true` | Deploy the DCGM exporter DaemonSet |
 | `dcgm-exporter.image.repository` | `nvcr.io/nvidia/k8s/dcgm-exporter` | Image |
 | `dcgm-exporter.image.tag` | `3.3.8-3.6.0-ubuntu22.04` | Image tag |
+| `dcgm-exporter.kubernetesMode.enabled` | `true` | Enable Kubernetes mode for pod attribution |
+| `dcgm-exporter.kubernetesMode.arguments` | `["-k"]` | Arguments for Kubelet PodResources API |
 | `dcgm-exporter.serviceMonitor.enabled` | `true` | Create a ServiceMonitor |
 | `dcgm-exporter.serviceMonitor.interval` | `15s` | Scrape interval |
 | `dcgm-exporter.extraEnv` | field IDs `203,204,251,252,100,101,150,230` | DCGM field IDs to export |
+
+**Kubernetes Mode**: When enabled, the DCGM exporter queries the Kubelet
+PodResources API and attaches `pod`, `namespace`, and `container` labels to all
+`DCGM_FI_DEV_*` metrics. This enables workload-level GPU observability without
+manual label mapping.
 
 Field IDs map to: SM utilization (203), memory-copy utilization (204), VRAM
 free/used (251/252), PCIe TX/RX (100/101), temperature (150), XID errors (230).

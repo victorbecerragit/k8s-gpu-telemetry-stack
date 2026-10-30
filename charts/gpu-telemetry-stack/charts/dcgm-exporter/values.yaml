@@ -25,6 +25,26 @@ serviceMonitor:
   enabled: true
   interval: 15s
 
+# -- Enable Kubernetes mode for pod/namespace attribution
+# When enabled, DCGM exporter uses the Kubelet PodResources API
+# to attach pod, namespace, and container labels to GPU metrics
+kubernetesMode:
+  enabled: true
+  arguments: ["-k"]
+
+# -- Volume mounts for Kubernetes mode (Kubelet PodResources socket)
+volumeMounts:
+  - name: pod-resources
+    mountPath: /var/lib/kubelet/pod-resources
+    readOnly: true
+
+# -- Additional volumes for Kubernetes mode
+volumes:
+  - name: pod-resources
+    hostPath:
+      path: /var/lib/kubelet/pod-resources
+      type: DirectoryOrCreate
+
 # -- Pod-level security context (DCGM needs host access to NVML)
 podSecurityContext:
   runAsNonRoot: false

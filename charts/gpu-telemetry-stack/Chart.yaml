@@ -2,7 +2,7 @@ apiVersion: v2
 name: gpu-telemetry-stack
 description: Production-grade GPU observability for Kubernetes — DCGM hardware metrics, eBPF TCP latency, Prometheus alerts and a Grafana dashboard in one chart.
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: "1.0.0"
 
 home: https://github.com/victorbecerragit/k8s-gpu-telemetry-stack
