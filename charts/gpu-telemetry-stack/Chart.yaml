@@ -69,7 +69,7 @@ annotations:
 
 dependencies:
   - name: dcgm-exporter
-    version: 0.1.0
+    version: 0.1.1
     repository: file://charts/dcgm-exporter
     condition: dcgm-exporter.enabled
 
