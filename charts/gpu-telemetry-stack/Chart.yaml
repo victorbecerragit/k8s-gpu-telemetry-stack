@@ -2,7 +2,7 @@ apiVersion: v2
 name: gpu-telemetry-stack
 description: Production-grade GPU observability for Kubernetes — DCGM hardware metrics, eBPF TCP latency, Prometheus alerts and a Grafana dashboard in one chart.
 type: application
-version: 0.1.3
+version: 0.1.4
 appVersion: "1.0.0"
 
 home: https://github.com/victorbecerragit/k8s-gpu-telemetry-stack
@@ -45,9 +45,13 @@ annotations:
       email: victorbecerragit@users.noreply.github.com
   artifacthub.io/changes: |
     - kind: added
-      description: the chart is now also published to GHCR as an OCI artifact (oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-stack) alongside the GitHub Pages repository
+      description: NVLink telemetry — DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL (field 435), DCGM_FI_DEV_NVLINK_RECOVERABLE_ERRORS (440) and DCGM_FI_DEV_NVLINK_INVAL_ERRORS (441) are now exported
+    - kind: added
+      description: a custom DCGM field collection ConfigMap, mounted at /etc/dcgm-exporter/custom-fields.csv and passed to the exporter with -f
+    - kind: added
+      description: NVLink Fabric dashboard row with per-GPU throughput and error panels
     - kind: changed
-      description: the publish workflow logs in to ghcr.io with GITHUB_TOKEN and pushes the packaged chart after validation
+      description: the dcgm-exporter subchart now ships an explicit field list; because -f replaces the built-in default-counters.csv, every previously exported metric is listed explicitly
     - kind: fixed
       description: eBPF probes now use the ig CLI image (ghcr.io/inspektor-gadget/ig) instead of the daemon image, which has no ig binary
     - kind: fixed
@@ -69,7 +73,7 @@ annotations:
 
 dependencies:
   - name: dcgm-exporter
-    version: 0.1.1
+    version: 0.1.2
     repository: file://charts/dcgm-exporter
     condition: dcgm-exporter.enabled
 

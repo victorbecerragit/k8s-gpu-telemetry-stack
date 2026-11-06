@@ -32,7 +32,12 @@ spec:
             - containerPort: {{ .Values.service.port }}
               name: metrics
               protocol: TCP
-          args: {{- toYaml .Values.kubernetesMode.arguments | nindent 12 }}
+          args:
+            {{- toYaml .Values.kubernetesMode.arguments | nindent 12 }}
+            {{- if .Values.fieldCollection.enabled }}
+            - "-f"
+            - {{ .Values.fieldCollection.mountPath | quote }}
+            {{- end }}
           env:
             {{- range .Values.extraEnv }}
             - name: {{ .name }}
@@ -60,14 +65,25 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.volumeMounts }}
           volumeMounts:
-            {{- toYaml .Values.volumeMounts | nindent 12 }}
-          {{- end }}
-      {{- if .Values.volumes }}
+            {{- if .Values.fieldCollection.enabled }}
+            - name: dcgm-fields
+              mountPath: {{ .Values.fieldCollection.mountPath | quote }}
+              subPath: custom-fields.csv
+              readOnly: true
+            {{- end }}
+            {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
       volumes:
-        {{- toYaml .Values.volumes | nindent 8 }}
-      {{- end }}
+        {{- if .Values.fieldCollection.enabled }}
+        - name: dcgm-fields
+          configMap:
+            name: {{ include "dcgm-exporter.fullname" . }}-fields
+        {{- end }}
+        {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}
       nodeSelector:

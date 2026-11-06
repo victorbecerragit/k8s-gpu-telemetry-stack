@@ -50,7 +50,14 @@ build_recursive() {
     )
 
     echo "  -> building $(basename "${chart}")"
-    helm dependency build "${chart}" >/dev/null
+    # `helm dependency build` refuses to run when Chart.lock is out of sync with
+    # Chart.yaml — which is exactly what happens after bumping a local sub-chart
+    # version. Fall back to `dependency update` so the lock is regenerated
+    # instead of failing the whole build.
+    if ! helm dependency build "${chart}" >/dev/null 2>&1; then
+      echo "     lock out of sync — regenerating"
+      helm dependency update "${chart}" >/dev/null
+    fi
   fi
 }
 

@@ -1,0 +1,23 @@
+{{- if .Values.fieldCollection.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "dcgm-exporter.fullname" . }}-fields
+  labels:
+    {{- include "dcgm-exporter.labels" . | nindent 4 }}
+data:
+  # DCGM field collection CSV. Passed to the exporter with `-f`.
+  #
+  # `-f` REPLACES the image's built-in default-counters.csv, so this file must
+  # list every field the stack exports — not just the additions. Removing an
+  # entry removes that metric from Prometheus, the dashboard and the alerts.
+  custom-fields.csv: |
+    # Format: DCGM field ID, DCGM field name, Prometheus metric type, help text
+    # NVLink fields (435, 440, 441) are appended after the core hardware set.
+    {{- range .Values.fieldCollection.fields }}
+    {{- if .id }}
+    # DCGM field ID {{ .id }}
+    {{- end }}
+    {{ .name }},{{ .type }},{{ .help }}
+    {{- end }}
+{{- end }}

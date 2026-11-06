@@ -32,6 +32,63 @@ kubernetesMode:
   enabled: true
   arguments: ["-k"]
 
+# -- Custom DCGM field collection.
+#
+# IMPORTANT: `-f` REPLACES the exporter's built-in default-counters.csv rather
+# than appending to it. The list below is therefore the complete set of fields
+# this stack exports — dropping an entry silently removes that metric from
+# Prometheus, the dashboard and the alert rules. Keep it in sync with
+# tests/test_dashboard_alerts.py::DCGM_METRICS.
+#
+# `id` is the DCGM field ID and is emitted as a CSV comment for traceability;
+# the exporter resolves the canonical metric name from `name`, which is what the
+# dashboard and alerts query.
+fieldCollection:
+  enabled: true
+  mountPath: /etc/dcgm-exporter/custom-fields.csv
+  fields:
+    # -- Core hardware telemetry (pre-existing)
+    - name: DCGM_FI_DEV_SM_CLOCK
+      type: gauge
+      help: SM clock frequency (in MHz).
+    - name: DCGM_FI_DEV_GPU_UTIL
+      type: gauge
+      help: GPU utilization (in %).
+    - name: DCGM_FI_DEV_MEM_COPY_UTIL
+      type: gauge
+      help: Memory utilization (in %).
+    - name: DCGM_FI_DEV_FB_FREE
+      type: gauge
+      help: Framebuffer memory free (in MiB).
+    - name: DCGM_FI_DEV_FB_USED
+      type: gauge
+      help: Framebuffer memory used (in MiB).
+    - name: DCGM_FI_DEV_GPU_TEMP
+      type: gauge
+      help: GPU temperature (in C).
+    - name: DCGM_FI_DEV_PCIE_TX_THROUGHPUT
+      type: counter
+      help: Total number of bytes transmitted through PCIe TX (in KB) via NVML.
+    - name: DCGM_FI_DEV_PCIE_RX_THROUGHPUT
+      type: counter
+      help: Total number of bytes received through PCIe RX (in KB) via NVML.
+    - name: DCGM_FI_DEV_XID_ERRORS
+      type: gauge
+      help: Value of the last XID error encountered.
+    # -- NVLink fabric telemetry (new)
+    - name: DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL
+      id: 435
+      type: counter
+      help: Total NVLink bandwidth counter across all lanes (bytes/s).
+    - name: DCGM_FI_DEV_NVLINK_RECOVERABLE_ERRORS
+      id: 440
+      type: counter
+      help: NVLink recoverable errors.
+    - name: DCGM_FI_DEV_NVLINK_INVAL_ERRORS
+      id: 441
+      type: counter
+      help: NVLink invalid packet errors.
+
 # -- Volume mounts for Kubernetes mode (Kubelet PodResources socket)
 volumeMounts:
   - name: pod-resources

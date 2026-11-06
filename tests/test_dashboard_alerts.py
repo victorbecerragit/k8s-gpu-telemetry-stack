@@ -23,6 +23,9 @@ DCGM_METRICS = {
     "DCGM_FI_DEV_PCIE_TX_THROUGHPUT",
     "DCGM_FI_DEV_PCIE_RX_THROUGHPUT",
     "DCGM_FI_DEV_XID_ERRORS",
+    "DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL",
+    "DCGM_FI_DEV_NVLINK_RECOVERABLE_ERRORS",
+    "DCGM_FI_DEV_NVLINK_INVAL_ERRORS",
 }
 
 # The OTel Prometheus exporter names the histogram after the field (`latency`)
