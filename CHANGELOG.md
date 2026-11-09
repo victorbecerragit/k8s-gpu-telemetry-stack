@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-11-09
+
+### Added
+
+#### GHCR (OCI) dual-publishing
+
+- The umbrella chart is now published to **two** registries from the same tag: the GitHub Pages Helm repository and GHCR as an OCI artifact. Install with `helm install gpu-telemetry oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-stack --version 0.1.5` — no `helm repo add` required.
+- `publish-helm-chart.yml` logs in to `ghcr.io` with `GITHUB_TOKEN` (`permissions: packages: write`), packages the chart under `charts/gpu-telemetry-stack`, asserts exactly one `.tgz` was produced, and pushes it to `oci://ghcr.io/<owner>/charts`.
+- `Chart.yaml` carries the full set of `artifacthub.io/*` annotations (license, category, changes, links, screenshots, recommendations) so the chart can be listed on Artifact Hub without further metadata work.
+
 ### Changed
 
 #### Multi-cloud Terraform layout

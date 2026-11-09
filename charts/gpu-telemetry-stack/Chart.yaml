@@ -2,7 +2,7 @@ apiVersion: v2
 name: gpu-telemetry-stack
 description: Production-grade GPU observability for Kubernetes — DCGM hardware metrics, eBPF TCP latency, Prometheus alerts and a Grafana dashboard in one chart.
 type: application
-version: 0.1.4
+version: 0.1.5
 appVersion: "1.0.0"
 
 home: https://github.com/victorbecerragit/k8s-gpu-telemetry-stack
@@ -45,21 +45,13 @@ annotations:
       email: victorbecerragit@users.noreply.github.com
   artifacthub.io/changes: |
     - kind: added
-      description: NVLink telemetry — DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL (field 435), DCGM_FI_DEV_NVLINK_RECOVERABLE_ERRORS (440) and DCGM_FI_DEV_NVLINK_INVAL_ERRORS (441) are now exported
+      description: the chart is now dual-published — the packaged artifact is pushed to GHCR (oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-stack) in addition to the GitHub Pages repository
     - kind: added
-      description: a custom DCGM field collection ConfigMap, mounted at /etc/dcgm-exporter/custom-fields.csv and passed to the exporter with -f
-    - kind: added
-      description: NVLink Fabric dashboard row with per-GPU throughput and error panels
+      description: Artifact Hub annotations (license, category, changes, links, screenshots) so the chart can be listed without further metadata work
     - kind: changed
-      description: the dcgm-exporter subchart now ships an explicit field list; because -f replaces the built-in default-counters.csv, every previously exported metric is listed explicitly
-    - kind: fixed
-      description: eBPF probes now use the ig CLI image (ghcr.io/inspektor-gadget/ig) instead of the daemon image, which has no ig binary
-    - kind: fixed
-      description: eBPF container execs ig directly; the image is distroless and has no /bin/sh
-    - kind: fixed
-      description: eBPF liveness probe uses `ig version` instead of a shell test
+      description: the publish workflow logs in to ghcr.io with GITHUB_TOKEN and pushes the package after validation, packaging and the gh-pages index merge
     - kind: changed
-      description: eBPF image tag pinned to v0.43.0 instead of latest
+      description: the dcgm-exporter dependency is pinned to 0.1.2 and the packaged chart embeds all five subcharts
   artifacthub.io/recommendations: |
     - url: https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack
     - url: https://artifacthub.io/packages/helm/grafana/grafana

@@ -30,7 +30,6 @@ permissions:
 env:
   CHART_DIR: charts/gpu-telemetry-stack
   PAGES_URL: https://victorbecerragit.github.io/k8s-gpu-telemetry-stack
-  OCI_REPO: ghcr.io/${{ github.repository_owner }}/charts
   HELM_VERSION: v3.15.4
 
 jobs:
@@ -137,8 +136,15 @@ jobs:
 
       - name: Package chart
         run: |
+          set -euo pipefail
           mkdir -p .deploy
-          helm package "$CHART_DIR" --destination .deploy
+          helm package charts/gpu-telemetry-stack --destination .deploy
+          # Exactly one package must exist: `helm push` accepts a single .tgz.
+          pkg_count="$(find .deploy -maxdepth 1 -name 'gpu-telemetry-stack-*.tgz' | wc -l)"
+          [ "$pkg_count" -eq 1 ] || {
+            echo "::error::expected 1 packaged chart, found ${pkg_count}"
+            exit 1
+          }
           ls -lh .deploy/
 
       - name: Log in to GHCR
@@ -151,10 +157,8 @@ jobs:
         if: github.event_name == 'push' || inputs.dry_run == false
         run: |
           set -euo pipefail
-          # `helm push` takes exactly one package; the glob resolves to the
-          # single .tgz produced by the previous step.
-          helm push .deploy/gpu-telemetry-stack-*.tgz "oci://${OCI_REPO}"
-          echo "Pushed to oci://${OCI_REPO}/gpu-telemetry-stack:${{ needs.validate.outputs.chart-version }}"
+          helm push .deploy/gpu-telemetry-stack-*.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          echo "Pushed gpu-telemetry-stack:${{ needs.validate.outputs.chart-version }} to oci://ghcr.io/${{ github.repository_owner }}/charts"
 
       - name: Build repository index
         run: |

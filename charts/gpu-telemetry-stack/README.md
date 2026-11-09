@@ -2,7 +2,7 @@
 
 Production-grade GPU observability for Kubernetes in a single umbrella chart.
 
-**v0.1.3** — DCGM exporter now supports Kubernetes mode for pod/namespace attribution on GPU metrics.
+**v0.1.5** — the chart is now published to GHCR as an OCI artifact in addition to the GitHub Pages Helm repository.
 
 It bundles four things that are usually wired together by hand:
 
@@ -44,7 +44,7 @@ Or straight from the OCI registry (no `helm repo add` required):
 
 ```bash
 helm install gpu-telemetry oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-stack \
-  --version 0.1.3 \
+  --version 0.1.5 \
   -n gpu-telemetry --create-namespace \
   -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-gke.yaml
 ```

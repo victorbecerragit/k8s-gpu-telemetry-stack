@@ -10,7 +10,7 @@ Production-grade observability bootstrap for GPU-accelerated Kubernetes clusters
 [![Publish Helm Chart](https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/actions/workflows/publish-helm-chart.yml/badge.svg)](https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/actions/workflows/publish-helm-chart.yml)
 [![Helm repo](https://img.shields.io/badge/helm%20repo-gh--pages-0f1689.svg)](https://victorbecerragit.github.io/k8s-gpu-telemetry-stack)
 
-**Latest**: [v0.1.3](https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/releases/tag/v0.1.3) — Pod attribution for GPU metrics via DCGM Kubernetes mode.
+**Latest**: [v0.1.5](https://github.com/victorbecerragit/k8s-gpu-telemetry-stack/releases/tag/v0.1.5) — the chart now publishes to GHCR as an OCI artifact alongside the GitHub Pages repository.
 
 ![Fleet summary](docs/images/fleet-summary.svg)
 
@@ -51,7 +51,7 @@ needed:
 
 ```bash
 helm install gpu-telemetry oci://ghcr.io/victorbecerragit/charts/gpu-telemetry-stack \
-  --version 0.1.3 \
+  --version 0.1.5 \
   -n gpu-telemetry --create-namespace \
   -f https://raw.githubusercontent.com/victorbecerragit/k8s-gpu-telemetry-stack/main/charts/gpu-telemetry-stack/values-gke.yaml
 ```
