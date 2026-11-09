@@ -1,7 +1,11 @@
-gcp_project_id = "YOUR_GCP_PROJECT_ID"
-gcp_region     = "us-central1"
-cluster_name   = "gpu-telemetry-demo"
-cluster_location = "us-central1-a"
+# Target platform: selects the Helm overlay (gke -> values-gke.yaml,
+# eks -> values-eks.yaml). Run your cloud's kubeconfig command first.
+cloud         = "gke"
+cluster_name  = "gpu-telemetry-demo"
+
+# Optional: pin the kubeconfig context. Empty = current context.
+# kubeconfig_path = "~/.kube/config"
+# kube_context    = "gke_your-project_us-central1-a_gpu-telemetry-demo"
 
 release_name = "gpu-telemetry"
 namespace    = "gpu-telemetry"

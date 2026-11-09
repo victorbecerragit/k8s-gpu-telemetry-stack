@@ -1,3 +1,13 @@
+output "target_cloud" {
+  description = "Platform overlay applied to the Helm release"
+  value       = var.cloud
+}
+
+output "helm_overlay_file" {
+  description = "Values overlay selected for the target cloud"
+  value       = local.overlay
+}
+
 output "helm_release_name" {
   description = "Name of the installed Helm release"
   value       = helm_release.gpu_telemetry.name

@@ -1,24 +1,30 @@
-variable "gcp_project_id" {
-  description = "GCP project ID that owns the demo cluster"
+variable "cloud" {
+  description = "Target platform: gke or eks (selects the Helm values overlay)"
   type        = string
-}
+  default     = "gke"
 
-variable "gcp_region" {
-  description = "GCP region where the existing GKE cluster runs"
-  type        = string
-  default     = "us-central1"
+  validation {
+    condition     = contains(["gke", "eks"], var.cloud)
+    error_message = "cloud must be \"gke\" or \"eks\"."
+  }
 }
 
 variable "cluster_name" {
-  description = "Existing GKE cluster name"
+  description = "Name of the existing cluster (used for global.clusterName)"
   type        = string
   default     = "gpu-telemetry-demo"
 }
 
-variable "cluster_location" {
-  description = "Zone of the existing GKE cluster"
+variable "kubeconfig_path" {
+  description = "Path to the kubeconfig file (empty = default loading rules)"
   type        = string
-  default     = "us-central1-a"
+  default     = ""
+}
+
+variable "kube_context" {
+  description = "Kubeconfig context to target (empty = current context)"
+  type        = string
+  default     = ""
 }
 
 # -- Helm release -----------------------------------------------------------

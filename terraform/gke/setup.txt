@@ -1,0 +1,59 @@
+# ------------------------------------------------------------
+# GKE Terraform Setup (GPU telemetry demo cluster)
+# ------------------------------------------------------------
+
+# 1) Authenticate Application Default Credentials
+
+gcloud auth login
+gcloud auth application-default login
+gcloud config set project YOUR_GCP_PROJECT_ID
+
+# 2) (Optional but recommended) Pre-enable required APIs via CLI.
+#    Terraform also enables them via google_project_service.
+
+gcloud services enable \
+  container.googleapis.com \
+  compute.googleapis.com \
+  cloudresourcemanager.googleapis.com
+
+# 3) Copy variables and edit values
+
+cp terraform/gke/terraform.tfvars.example terraform/gke/terraform.tfvars
+
+# 4) Plan / apply the cluster root
+
+terraform -chdir=terraform/gke init -input=false
+terraform -chdir=terraform/gke plan --var-file=terraform.tfvars
+terraform -chdir=terraform/gke apply --var-file=terraform.tfvars
+
+# 5) Configure kubectl for the new cluster (see the gke_get_credentials_command output)
+
+gcloud container clusters get-credentials gpu-telemetry-demo \
+  --zone us-central1-a --project YOUR_GCP_PROJECT_ID
+
+# 6) Install the telemetry stack + demo workloads (in-cluster root)
+
+cp terraform/incluster/terraform.tfvars.example terraform/incluster/terraform.tfvars
+#    Set cloud = "gke" (the root authenticates via the current kubeconfig context).
+
+terraform -chdir=terraform/incluster init -input=false
+terraform -chdir=terraform/incluster apply --var-file=terraform.tfvars
+
+# 7) Verify
+
+kubectl get nodes -l workload=gpu-telemetry   # GPU pool nodes
+kubectl get pods -n gpu-telemetry             # DCGM exporter, gadget, Prometheus, Grafana
+
+# Notes:
+# - The GPU pool is tainted nvidia.com/gpu=present:NoSchedule; the demo
+#   workloads and DCGM exporter carry matching tolerations.
+# - GKE manages the NVIDIA driver (gpu_driver_version = "LATEST"), so the
+#   GPU Operator sub-chart stays disabled in values-gke.yaml.
+# - Orchestrate the whole flow with ./scripts/demo-gke.sh {up|status|snapshot|down}.
+
+# ------------------------------------------------------------
+# Cleanup
+# ------------------------------------------------------------
+
+terraform -chdir=terraform/incluster destroy --var-file=terraform.tfvars
+terraform -chdir=terraform/gke destroy --var-file=terraform.tfvars

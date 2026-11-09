@@ -1,12 +1,13 @@
 ###############################################################################
 # In-cluster deployment root for the GPU telemetry demo.
 #
-# Mirrors the vllm-inference-platform `terraform/incluster` pattern: it targets
-# an existing GKE cluster (created by ../main.tf) and installs the Helm chart
+# Cloud-agnostic: it targets whatever cluster your current kubeconfig points
+# at (run `gcloud container clusters get-credentials ...` for GKE or
+# `aws eks update-kubeconfig ...` for EKS first), then installs the Helm chart
 # plus the demo workloads through the Kubernetes/Helm providers.
 #
 # Usage:
-#   cp terraform.tfvars.example terraform.tfvars
+#   cp terraform.tfvars.example terraform.tfvars   # set `cloud` to gke or eks
 #   terraform -chdir=terraform/incluster init
 #   terraform -chdir=terraform/incluster apply --var-file=terraform.tfvars
 ###############################################################################
@@ -15,10 +16,6 @@ terraform {
   required_version = ">= 1.5.0"
 
   required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "~> 5.0"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 2.30"
@@ -30,22 +27,11 @@ terraform {
   }
 }
 
-provider "google" {
-  project = var.gcp_project_id
-  region  = var.gcp_region
-}
-
-data "google_client_config" "default" {}
-
-data "google_container_cluster" "primary" {
-  name     = var.cluster_name
-  location = var.cluster_location
-}
-
 locals {
-  cluster_host      = "https://${data.google_container_cluster.primary.endpoint}"
-  cluster_ca_cert   = base64decode(data.google_container_cluster.primary.master_auth[0].cluster_ca_certificate)
-  cluster_token     = data.google_client_config.default.access_token
+  # Pick the platform overlay: GKE disables the GPU Operator (GKE owns the
+  # driver + device plugin); EKS runs it against the NVIDIA AMI.
+  overlay = var.cloud == "gke" ? "values-gke.yaml" : "values-eks.yaml"
+
   chart_path        = abspath("${path.module}/../../charts/gpu-telemetry-stack")
   demo_manifest_dir = abspath("${path.module}/../../demo")
 
@@ -59,17 +45,17 @@ locals {
   ]
 }
 
+# Both providers authenticate through the active kubeconfig context, so this
+# root works against GKE, EKS, or any reachable cluster (kind, k3s, ...).
 provider "kubernetes" {
-  host                   = local.cluster_host
-  token                  = local.cluster_token
-  cluster_ca_certificate = local.cluster_ca_cert
+  config_path    = var.kubeconfig_path
+  config_context = var.kube_context
 }
 
 provider "helm" {
   kubernetes {
-    host                   = local.cluster_host
-    token                  = local.cluster_token
-    cluster_ca_certificate = local.cluster_ca_cert
+    config_path    = var.kubeconfig_path
+    config_context = var.kube_context
   }
 }
 
@@ -82,10 +68,10 @@ resource "helm_release" "gpu_telemetry" {
   namespace        = var.namespace
   create_namespace = true
 
-  # Base values first, then the GKE overlay so it wins.
+  # Base values first, then the cloud overlay so it wins.
   values = [
     file("${local.chart_path}/values.yaml"),
-    file("${local.chart_path}/values-gke.yaml"),
+    file("${local.chart_path}/${local.overlay}"),
   ]
 
   set {
@@ -109,8 +95,9 @@ resource "helm_release" "gpu_telemetry" {
     }
   }
 
-  # The GPU Operator is disabled on GKE (GKE manages the driver + device
-  # plugin), so the release should settle without waiting on it.
+  # On GKE the GPU Operator is disabled (GKE manages the driver + device
+  # plugin); on EKS the operator waits on its DaemonSets. Either way `wait`
+  # keeps the release settled before the demo workloads are applied.
   timeout = var.helm_timeout_seconds
   wait    = true
 }

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+#### Multi-cloud Terraform layout
+
+- `terraform/` is now a collection of independent root modules: `terraform/gke/` (GCP cluster), `terraform/eks/` (AWS cluster), and `terraform/incluster/` (Helm release + demo workloads). The previous single-cloud root is archived under `terraform/old/`.
+- The GKE root restores the telemetry demo configuration: VPC-native subnet with pod/service ranges, Workload Identity, a `workload=observability` system pool, and a `workload=gpu-telemetry` GPU pool tainted `nvidia.com/gpu=present:NoSchedule` with the GKE-managed NVIDIA driver.
+- The EKS root provisions a matching topology on AWS: `m6i.large` system node group and a tainted `g6.xlarge` (L4, Spot) GPU node group on the AL2023 NVIDIA AMI, aligned with `values-eks.yaml`.
+- `terraform/incluster/` is now cloud-agnostic: it authenticates through the active kubeconfig context and selects the `values-gke.yaml` or `values-eks.yaml` overlay via the new `cloud` variable.
+- `scripts/demo-gke.sh` targets the new `terraform/gke/` root and writes kubeconfig-based in-cluster tfvars.
+
+### Added
+
+- `terraform/README.md`, `terraform/gke/setup.txt`, and `terraform/eks/setup.txt` document per-root init/plan/apply workflows.
+- `tests/test_terraform.py` validates all three roots and pins the node-label/taint contract between Terraform and the chart overlays.
+
 ## [0.1.4] - 2026-11-06
 
 ### Added

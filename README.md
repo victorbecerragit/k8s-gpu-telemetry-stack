@@ -93,18 +93,19 @@ Rendered as a `PrometheusRule` by the Prometheus wrapper chart:
 
 Thresholds are configurable under `prometheus.rules.thresholds` in `values.yaml`.
 
-## GKE demo
+## Demo environments (GKE / EKS)
 
 A complete, disposable demo environment lives in `terraform/` and `demo/`. It
-provisions a zonal GKE cluster with a tainted GPU node pool, installs the stack,
+provisions a cluster with a tainted GPU node pool, installs the stack,
 and runs workloads that generate real GPU and network telemetry.
 
 ### What gets created
 
 | Layer | Resources |
 | --- | --- |
-| `terraform/` | VPC + subnet, zonal GKE cluster (default pool removed), `e2-standard-4` system pool, `g2-standard-4` + `nvidia-l4` GPU pool (tainted, Spot by default) |
-| `terraform/incluster/` | Helm release of this chart with `values-gke.yaml`, plus the demo workloads |
+| `terraform/gke/` | VPC + subnet, zonal GKE cluster (default pool removed), `e2-standard-4` system pool, `g2-standard-4` + `nvidia-l4` GPU pool (tainted, Spot by default) |
+| `terraform/eks/` | VPC, EKS cluster, `m6i.large` system node group, `g6.xlarge` GPU node group (tainted, Spot by default) |
+| `terraform/incluster/` | Helm release of this chart with the cloud overlay (`values-gke.yaml` / `values-eks.yaml`), plus the demo workloads |
 | `demo/` | `gpu-burn` matmul loop (SM/VRAM/PCIe/temp) and a client/server pair driving pod-to-pod TCP traffic |
 
 ### Run it
@@ -136,7 +137,8 @@ kubectl port-forward -n gpu-telemetry svc/gpu-telemetry-prometheus-kube-promethe
 ### Cost and cleanup
 
 The GPU pool uses Spot VMs by default and autoscales from one node. Set
-`use_spot_instances = false` in `terraform/terraform.tfvars` if you need
+`use_spot_instances = false` in `terraform/gke/terraform.tfvars` (or
+`gpu_capacity_type = "ON_DEMAND"` in `terraform/eks/terraform.tfvars`) if you need
 guaranteed capacity. **Always run `./scripts/demo-gke.sh down`** when finished —
 a GPU node left running is the main cost driver.
 
@@ -238,7 +240,9 @@ charts/gpu-telemetry-stack/          # root chart
   charts/prometheus/                 # kube-prometheus-stack wrapper + alerts
   charts/grafana/                    # Grafana wrapper + dashboard JSON
   charts/gpu-operator/               # NVIDIA GPU Operator wrapper
-terraform/                           # GKE infra root (VPC, cluster, node pools)
+terraform/                           # multi-cloud IaC roots (gke/ eks/ incluster/)
+terraform/gke/                       # GKE infra root (VPC, cluster, node pools)
+terraform/eks/                       # EKS infra root (VPC, cluster, node groups)
 terraform/incluster/                 # Helm + demo workload deployment root
 demo/                                # demo workloads and captured snapshots
 docs/images/                         # rendered charts used by this README

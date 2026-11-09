@@ -24,8 +24,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-TF_DIR="${ROOT_DIR}/terraform"
-TF_INCLUSTER_DIR="${TF_DIR}/incluster"
+TF_DIR="${ROOT_DIR}/terraform/gke"
+TF_INCLUSTER_DIR="${ROOT_DIR}/terraform/incluster"
 CHART_DIR="${ROOT_DIR}/charts/gpu-telemetry-stack"
 SNAPSHOT_DIR="${ROOT_DIR}/demo/snapshots"
 
@@ -91,9 +91,9 @@ cmd_up() {
     log_warn "GPU nodes not Ready yet; continuing anyway."
 
   log_info "Installing the telemetry stack via Terraform (in-cluster root)..."
-  write_tfvars "${TF_INCLUSTER_DIR}/terraform.tfvars"
-  cat >>"${TF_INCLUSTER_DIR}/terraform.tfvars" <<EOF
-cluster_location       = "${CLUSTER_ZONE}"
+  cat >"${TF_INCLUSTER_DIR}/terraform.tfvars" <<EOF
+cloud                  = "gke"
+cluster_name           = "${CLUSTER_NAME}"
 namespace              = "${NAMESPACE}"
 demo_namespace         = "${DEMO_NAMESPACE}"
 install_demo_workloads = true

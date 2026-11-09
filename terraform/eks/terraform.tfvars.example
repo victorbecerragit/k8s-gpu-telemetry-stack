@@ -1,0 +1,22 @@
+aws_region      = "us-west-2"
+cluster_name    = "gpu-telemetry-demo"
+cluster_version = "1.30"
+
+# Baseline observability node group
+system_node_instance_types = ["m6i.large"]
+system_capacity_type       = "ON_DEMAND"
+system_node_desired_count  = 1
+system_node_min_count      = 1
+system_node_max_count      = 3
+
+# GPU node group (NVIDIA L4 on g6 family, tainted nvidia.com/gpu)
+# Keep desired_count at 0 until EC2 Spot quota is approved for G/VT families.
+gpu_node_instance_types = ["g6.xlarge"]
+gpu_capacity_type       = "SPOT"
+gpu_node_desired_count  = 1
+gpu_node_min_count      = 0
+gpu_node_max_count      = 1
+
+tags = {
+  Owner = "platform-team"
+}
